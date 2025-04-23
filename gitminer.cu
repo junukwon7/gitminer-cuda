@@ -184,7 +184,7 @@ __global__ void run_set(uint8_t *data_input, uint8_t *nonce, uint8_t *nonce_foun
 			if (result[0] < result_found[kernel_id*5+0]) {
 				if (result[1] < result_found[kernel_id*5+1]) {
 					log("Found a new lowest value");
-					log(to_string(result[0]) + " " + to_string(result[1]) + " " + to_string(result[2]) + " " + to_string(result[3]) + " " + to_string(result[4]));
+					log(result[0])
 					memcpy_device(nonce_found+kernel_id*nonce_len, data+data_range_start, nonce_len);
 					memcpy_device(result_found+kernel_id*5, result, 5*4);
 				}
