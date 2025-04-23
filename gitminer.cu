@@ -341,16 +341,16 @@ int main(int argc, char *argv[]) {
 
 		for (uint64_t i = 0; i < (uint64_t) NUM_BLOCKS*NUM_THREADS; ++i) {
 			if (!RESULT_THREAD_LEAST_TEMP[5*i+0]) {
-				if (RESULT_THREAD_LEAST_TEMP[5*i+1] < RESULT_LEAST[1]) {
-					memcpy(RESULT_LEAST, RESULT_THREAD_LEAST_TEMP+5*i, 5*4);
-					cudaMemcpy(DATA_LEAST+data_range_start, NONCE_THREAD_LEAST+NONCE_LEN*i, NONCE_LEN, cudaMemcpyDeviceToHost);
+				if (RESULT_THREAD_LEAST_TEMP[5*i+1] < RESULT_LOWEST[1]) {
+					memcpy(RESULT_LOWEST, RESULT_THREAD_LEAST_TEMP+5*i, 5*4);
+					cudaMemcpy(DATA_LOWEST+data_range_start, NONCE_THREAD_LOWEST+NONCE_LEN*i, NONCE_LEN, cudaMemcpyDeviceToHost);
 					for (int j = 0; j < NONCE_LEN; ++j) {
-						buf_nonce[j] = DATA_LEAST[data_range_start+j];
+						buf_nonce[j] = DATA_LOWEST[data_range_start+j];
 					}
 					buf_nonce[NONCE_LEN] = 0;
-					sprintf(buf, "Thread #%ld found the least value: %08x%08x%08x%08x%08x (nonce: %s)", i, RESULT_LEAST[0], RESULT_LEAST[1], RESULT_LEAST[2], RESULT_LEAST[3], RESULT_LEAST[4], buf_nonce);
+					sprintf(buf, "Thread #%ld found the least value: %08x%08x%08x%08x%08x (nonce: %s)", i, RESULT_LOWEST[0], RESULT_LOWEST[1], RESULT_LOWEST[2], RESULT_LOWEST[3], RESULT_LOWEST[4], buf_nonce);
 					log(buf);
-					output(DATA_LEAST, DATA_LEN);
+					output(DATA_LOWEST, DATA_LEN);
 				}
 			}
 		}
