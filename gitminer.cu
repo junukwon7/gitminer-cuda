@@ -340,9 +340,9 @@ int main(int argc, char *argv[]) {
 		cudaMemcpy(RESULT_THREAD_LOWEST_TEMP, RESULT_THREAD_LOWEST, NUM_BLOCKS*NUM_THREADS*5*4, cudaMemcpyDeviceToHost);
 
 		for (uint64_t i = 0; i < (uint64_t) NUM_BLOCKS*NUM_THREADS; ++i) {
-			if (!RESULT_THREAD_LEAST_TEMP[5*i+0]) {
-				if (RESULT_THREAD_LEAST_TEMP[5*i+1] < RESULT_LOWEST[1]) {
-					memcpy(RESULT_LOWEST, RESULT_THREAD_LEAST_TEMP+5*i, 5*4);
+			if (!RESULT_THREAD_LOWEST_TEMP[5*i+0]) {
+				if (RESULT_THREAD_LOWEST_TEMP[5*i+1] < RESULT_LOWEST[1]) {
+					memcpy(RESULT_LOWEST, RESULT_THREAD_LOWEST_TEMP+5*i, 5*4);
 					cudaMemcpy(DATA_LOWEST+data_range_start, NONCE_THREAD_LOWEST+NONCE_LEN*i, NONCE_LEN, cudaMemcpyDeviceToHost);
 					for (int j = 0; j < NONCE_LEN; ++j) {
 						buf_nonce[j] = DATA_LOWEST[data_range_start+j];
