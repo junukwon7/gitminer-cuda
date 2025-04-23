@@ -180,7 +180,8 @@ __global__ void run_set(uint8_t *data_input, uint8_t *nonce, uint8_t *nonce_foun
 			data[data_range_start] = j;
 			memcpy_device(result, result_cache, 5*4);
 			sha1_block(data+data_len-64, result);
-
+			sprintf(buf, "Printing result: %08x%08x%08x%08x%08x", result[0], result[1], result[2], result[3], result[4]);
+			log(buf);
 			memcpy_device(nonce_found+kernel_id*nonce_len, data+data_range_start, nonce_len);
 			memcpy_device(result_found+kernel_id*5, result, 5*4);
 		}
