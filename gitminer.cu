@@ -156,6 +156,7 @@ __device__ inline void memset_device(uint8_t *ptr, int value, size_t num) {
 __global__ void run_set(uint8_t *data_input, uint8_t *nonce, uint8_t *nonce_found, uint32_t *result_found, int data_len, int data_len_padded, int nonce_len, int epoch_count) {
 	int kernel_id = blockIdx.x * blockDim.x + threadIdx.x;
 	int nonce_size = data_range_end-data_range_start;
+	char buf[1000];
 
 	//variable to perform search
 	int range_search;
