@@ -361,6 +361,8 @@ int main(int argc, char *argv[]) {
 			processed_last = processed;
 			log(buf);
 			begin_log = chrono::high_resolution_clock::now();
+			sprintf(buf, "Current lowest: %08x%08x%08x%08x%08x (nonce: %s)", RESULT_LOWEST[0], RESULT_LOWEST[1], RESULT_LOWEST[2], RESULT_LOWEST[3], RESULT_LOWEST[4], buf_nonce);
+			log(buf);
 		}
 	}
 }
