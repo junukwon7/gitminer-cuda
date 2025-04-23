@@ -330,7 +330,6 @@ int main(int argc, char *argv[]) {
 	cudaMemcpy(RESULT_THREAD_LEAST, RESULT_THREAD_LEAST_TEMP, NUM_BLOCKS*NUM_THREADS*5*4, cudaMemcpyHostToDevice);
 	test_sha1_kernel<<<1, 1>>>();
 	cudaDeviceSynchronize();
-	err = cudaDeviceSynchronize();
 	if (err != cudaSuccess) {
 		log("CUDA sync failed: " + string(cudaGetErrorString(err)));
 	}
