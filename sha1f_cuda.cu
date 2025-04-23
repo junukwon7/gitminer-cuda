@@ -20,13 +20,13 @@ using namespace std;
 #define range_upper 'z' //inclusive
 
 //nonce range (sequence in base.txt)
-#define data_range_start 1810
-#define data_range_end 1830
+#define data_range_start 1850
+#define data_range_end 1870
 
 //variable part of nonce
 #define data_range_len_var 10
 
-#define data_len_max 2500 //expected max length of input data
+#define data_len_max 2020 //expected max length of input data
 
 int logmode = 1;
 
@@ -341,6 +341,10 @@ int main(int argc, char *argv[]) {
 			if (RESULT_THREAD_LEAST_TEMP[5*i+0] < RESULT_LEAST[0]) {
 				memcpy(RESULT_LEAST, RESULT_THREAD_LEAST_TEMP+5*i, 5*4);
 				cudaMemcpy(DATA_LEAST+data_range_start, NONCE_THREAD_LEAST+NONCE_LEN*i, NONCE_LEN, cudaMemcpyDeviceToHost);
+				cudaError_t err = cudaGetLastError();
+				if (err != 0) {
+					log("CUDA kernel error: " + string(cudaGetErrorString(err)));
+				}
 				for (int j = 0; j < NONCE_LEN; ++j) {
 					buf_nonce[j] = DATA_LEAST[data_range_start+j];
 				}
