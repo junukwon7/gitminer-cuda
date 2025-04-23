@@ -20,13 +20,13 @@ using namespace std;
 #define range_upper 'z' //inclusive
 
 //nonce range (sequence in base.txt)
-#define data_range_start 1850
-#define data_range_end 1870
+#define data_range_start 1130
+#define data_range_end 1150
 
 //variable part of nonce
 #define data_range_len_var 10
 
-#define data_len_max 2020 //expected max length of input data
+#define data_len_max 2000 //expected max length of input data
 
 int logmode = 1;
 
@@ -188,13 +188,14 @@ __global__ void run_set(uint8_t *data_input, uint8_t *nonce, uint8_t *nonce_foun
 			data[data_range_start] = j;
 			memcpy_device(result, result_cache, 5*4);
 			sha1_block(data+data_len-64, result);
-			if (threadIdx.x == 0 && blockIdx.x == 0 && i == 0 && j == range_lower) {
-				printf("result = %08x %08x %08x %08x %08x\n", result[0], result[1], result[2], result[3], result[4]);
-			}
 
-			if (result[0] < result_found[kernel_id*5+0]) {
-				memcpy_device(nonce_found+kernel_id*nonce_len, data+data_range_start, nonce_len);
-				memcpy_device(result_found+kernel_id*5, result, 5*4);
+			if (result[0] <= result_found[kernel_id*5+0]) {
+				printf("result: %08x %08x %08x %08x %08x\n", result[0], result[1], result[2], result[3], result[4]);
+				if (result[0] < result_found[kernel_id*5+0]) {
+					printf("nice result: %08x %08x %08x %08x %08x\n", result[0], result[1], result[2], result[3], result[4]);
+					memcpy_device(nonce_found+kernel_id*nonce_len, data+data_range_start, nonce_len);
+					memcpy_device(result_found+kernel_id*5, result, 5*4);
+				}
 			}
 		}
 
@@ -359,15 +360,18 @@ int main(int argc, char *argv[]) {
 
 		for (uint64_t i = 0; i < (uint64_t) NUM_BLOCKS*NUM_THREADS; ++i) {
 			if (RESULT_THREAD_LEAST_TEMP[5*i+0] < RESULT_LEAST[0]) {
-				memcpy(RESULT_LEAST, RESULT_THREAD_LEAST_TEMP+5*i, 5*4);
-				cudaMemcpy(DATA_LEAST+data_range_start, NONCE_THREAD_LEAST+NONCE_LEN*i, NONCE_LEN, cudaMemcpyDeviceToHost);
-				for (int j = 0; j < NONCE_LEN; ++j) {
-					buf_nonce[j] = DATA_LEAST[data_range_start+j];
+				if (RESULT_THREAD_LEAST_TEMP[5*i+1] < RESULT_LEAST[1])
+				{
+					memcpy(RESULT_LEAST, RESULT_THREAD_LEAST_TEMP+5*i, 5*4);
+					cudaMemcpy(DATA_LEAST+data_range_start, NONCE_THREAD_LEAST+NONCE_LEN*i, NONCE_LEN, cudaMemcpyDeviceToHost);
+					for (int j = 0; j < NONCE_LEN; ++j) {
+						buf_nonce[j] = DATA_LEAST[data_range_start+j];
+					}
+					buf_nonce[NONCE_LEN] = 0;
+					sprintf(buf, "Thread #%ld found the least value: %08x%08x%08x%08x%08x (nonce: %s)", i, RESULT_LEAST[0], RESULT_LEAST[1], RESULT_LEAST[2], RESULT_LEAST[3], RESULT_LEAST[4], buf_nonce);
+					log(buf);
+					output(DATA_LEAST, DATA_LEN);
 				}
-				buf_nonce[NONCE_LEN] = 0;
-				sprintf(buf, "Thread #%ld found the least value: %08x%08x%08x%08x%08x (nonce: %s)", i, RESULT_LEAST[0], RESULT_LEAST[1], RESULT_LEAST[2], RESULT_LEAST[3], RESULT_LEAST[4], buf_nonce);
-				log(buf);
-				output(DATA_LEAST, DATA_LEN);
 			}
 		}
 		end = chrono::high_resolution_clock::now();
