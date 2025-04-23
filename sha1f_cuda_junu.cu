@@ -153,6 +153,14 @@ __device__ inline void memset_device(uint8_t *ptr, int value, size_t num) {
 	}
 }
 
+__global__ void test_sha1_kernel() {
+    uint8_t data[64];
+    uint32_t hash[5];
+    for (int i = 0; i < 64; i++) data[i] = 'a';
+    sha1(data, 3, hash);  // Hash "aaa"
+    printf("SHA1(aaa) = %08x %08x %08x %08x %08x\n", hash[0], hash[1], hash[2], hash[3], hash[4]);
+}
+
 __global__ void run_set(uint8_t *data_input, uint8_t *nonce, uint8_t *nonce_found, uint32_t *result_found, int data_len, int data_len_padded, int nonce_len, int epoch_count) {
 	int kernel_id = blockIdx.x * blockDim.x + threadIdx.x;
 	int nonce_size = data_range_end-data_range_start;
@@ -180,6 +188,9 @@ __global__ void run_set(uint8_t *data_input, uint8_t *nonce, uint8_t *nonce_foun
 			data[data_range_start] = j;
 			memcpy_device(result, result_cache, 5*4);
 			sha1_block(data+data_len-64, result);
+			if (threadIdx.x == 0 && blockIdx.x == 0 && i == 0 && j == range_lower) {
+				printf("result = %08x %08x %08x %08x %08x\n", result[0], result[1], result[2], result[3], result[4]);
+			}
 
 			if (result[0] < result_found[kernel_id*5+0]) {
 				memcpy_device(nonce_found+kernel_id*nonce_len, data+data_range_start, nonce_len);
@@ -317,7 +328,13 @@ int main(int argc, char *argv[]) {
 	cudaMemcpy(NONCE_THREAD, NONCE_TEMP, NUM_BLOCKS*NUM_THREADS*NONCE_LEN, cudaMemcpyHostToDevice);
 	cudaMemcpy(BASE, DATA, DATA_LEN, cudaMemcpyHostToDevice);
 	cudaMemcpy(RESULT_THREAD_LEAST, RESULT_THREAD_LEAST_TEMP, NUM_BLOCKS*NUM_THREADS*5*4, cudaMemcpyHostToDevice);
+	test_sha1_kernel<<<1, 1>>>();
 	cudaDeviceSynchronize();
+	err = cudaDeviceSynchronize();
+	if (err != cudaSuccess) {
+		log("CUDA sync failed: " + string(cudaGetErrorString(err)));
+	}
+
 
 	//time measurement
 	auto begin = chrono::high_resolution_clock::now();
@@ -332,7 +349,10 @@ int main(int argc, char *argv[]) {
 
 	for(;;) {
 		run_set<<<NUM_BLOCKS, NUM_THREADS>>>(BASE, NONCE_THREAD, NONCE_THREAD_LEAST, RESULT_THREAD_LEAST, DATA_LEN, PADDED_LEN, NONCE_LEN, EPOCH_COUNT);
-
+		cudaError_t err = cudaGetLastError();
+		if (err != cudaSuccess) {
+			log("CUDA kernel launch failed: " + string(cudaGetErrorString(err)));
+		}
 		processed += (uint64_t) NUM_BLOCKS * NUM_THREADS * EPOCH_COUNT * (range_upper - range_lower + 1);
 
 		cudaMemcpy(RESULT_THREAD_LEAST_TEMP, RESULT_THREAD_LEAST, NUM_BLOCKS*NUM_THREADS*5*4, cudaMemcpyDeviceToHost);
@@ -341,10 +361,6 @@ int main(int argc, char *argv[]) {
 			if (RESULT_THREAD_LEAST_TEMP[5*i+0] < RESULT_LEAST[0]) {
 				memcpy(RESULT_LEAST, RESULT_THREAD_LEAST_TEMP+5*i, 5*4);
 				cudaMemcpy(DATA_LEAST+data_range_start, NONCE_THREAD_LEAST+NONCE_LEN*i, NONCE_LEN, cudaMemcpyDeviceToHost);
-				cudaError_t err = cudaGetLastError();
-				if (err != 0) {
-					log("CUDA kernel error: " + string(cudaGetErrorString(err)));
-				}
 				for (int j = 0; j < NONCE_LEN; ++j) {
 					buf_nonce[j] = DATA_LEAST[data_range_start+j];
 				}
