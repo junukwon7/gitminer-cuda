@@ -20,13 +20,13 @@ using namespace std;
 #define range_upper 'z' //inclusive
 
 //nonce range (sequence in base.txt)
-#define data_range_start 226
-#define data_range_end 246
+#define data_range_start 1790
+#define data_range_end 1800
 
 //variable part of nonce
 #define data_range_len_var 10
 
-#define data_len_max 320 //expected max length of input data
+#define data_len_max 2500 //expected max length of input data
 
 int logmode = 1;
 
@@ -181,7 +181,7 @@ __global__ void run_set(uint8_t *data_input, uint8_t *nonce, uint8_t *nonce_foun
 			memcpy_device(result, result_cache, 5*4);
 			sha1_block(data+data_len-64, result);
 
-			if (!result[0]) {
+			if (result[0] < result_found[kernel_id*5+0]) {
 				if (result[1] < result_found[kernel_id*5+1]) {
 					memcpy_device(nonce_found+kernel_id*nonce_len, data+data_range_start, nonce_len);
 					memcpy_device(result_found+kernel_id*5, result, 5*4);
