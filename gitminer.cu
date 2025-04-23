@@ -343,6 +343,8 @@ int main(int argc, char *argv[]) {
 				buf_nonce[j] = DATA_LEAST[data_range_start+j];
 			}
 			buf_nonce[NONCE_LEN] = 0;
+			sprintf(buf, "Printing RESULT_THREAD_LEAST: %08x%08x%08x%08x%08x", RESULT_THREAD_LEAST_TEMP[0], RESULT_THREAD_LEAST_TEMP[1], RESULT_THREAD_LEAST_TEMP[2], RESULT_THREAD_LEAST_TEMP[3], RESULT_THREAD_LEAST_TEMP[4]);
+			log(buf);
 			sprintf(buf, "Thread #%ld found the least value: %08x%08x%08x%08x%08x (nonce: %s)", i, RESULT_LEAST[0], RESULT_LEAST[1], RESULT_LEAST[2], RESULT_LEAST[3], RESULT_LEAST[4], buf_nonce);
 			log(buf);
 			output(DATA_LEAST, DATA_LEN);
