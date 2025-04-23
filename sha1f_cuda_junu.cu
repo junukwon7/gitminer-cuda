@@ -473,10 +473,10 @@ int main(int argc, char *argv[])
 
 		for (uint64_t i = 0; i < (uint64_t)NUM_BLOCKS * NUM_THREADS; ++i)
 		{
-			if (RESULT_THREAD_LEAST_TEMP[5 * i + 0] <= RESULT_LEAST[0] || (RESULT_THREAD_LEAST_TEMP[5 * i + 0] == RESULT_LEAST[0] &&
-																		   (RESULT_THREAD_LEAST_TEMP[5 * i + 1] <= RESULT_LEAST[1] || (RESULT_THREAD_LEAST_TEMP[5 * i + 1] == RESULT_LEAST[1] &&
-																																	   (RESULT_THREAD_LEAST_TEMP[5 * i + 2] <= RESULT_LEAST[2] || (RESULT_THREAD_LEAST_TEMP[5 * i + 2] == RESULT_LEAST[2] &&
-																																																   (RESULT_THREAD_LEAST_TEMP[5 * i + 3] <= RESULT_LEAST[3] || (RESULT_THREAD_LEAST_TEMP[5 * i + 3] == RESULT_LEAST[3] &&
+			if (RESULT_THREAD_LEAST_TEMP[5 * i + 0] < RESULT_LEAST[0] || (RESULT_THREAD_LEAST_TEMP[5 * i + 0] == RESULT_LEAST[0] &&
+																		   (RESULT_THREAD_LEAST_TEMP[5 * i + 1] < RESULT_LEAST[1] || (RESULT_THREAD_LEAST_TEMP[5 * i + 1] == RESULT_LEAST[1] &&
+																																	   (RESULT_THREAD_LEAST_TEMP[5 * i + 2] < RESULT_LEAST[2] || (RESULT_THREAD_LEAST_TEMP[5 * i + 2] == RESULT_LEAST[2] &&
+																																																   (RESULT_THREAD_LEAST_TEMP[5 * i + 3] < RESULT_LEAST[3] || (RESULT_THREAD_LEAST_TEMP[5 * i + 3] == RESULT_LEAST[3] &&
 																																																															   RESULT_THREAD_LEAST_TEMP[5 * i + 4] < RESULT_LEAST[4]))))))))
 			{
 				memcpy(RESULT_LEAST, RESULT_THREAD_LEAST_TEMP + 5 * i, 5 * 4);
@@ -505,3 +505,4 @@ int main(int argc, char *argv[])
 			}
 		}
 	}
+}
