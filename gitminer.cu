@@ -20,8 +20,8 @@ using namespace std;
 #define range_upper 'z' //inclusive
 
 //nonce range (sequence in base.txt)
-#define data_range_start 1790
-#define data_range_end 1800
+#define data_range_start 1800
+#define data_range_end 1820
 
 //variable part of nonce
 #define data_range_len_var 10
