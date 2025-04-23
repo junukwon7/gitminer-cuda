@@ -183,6 +183,8 @@ __global__ void run_set(uint8_t *data_input, uint8_t *nonce, uint8_t *nonce_foun
 
 			if (result[0] < result_found[kernel_id*5+0]) {
 				if (result[1] < result_found[kernel_id*5+1]) {
+					log("Found a new lowest value");
+					log(to_string(result[0]) + " " + to_string(result[1]) + " " + to_string(result[2]) + " " + to_string(result[3]) + " " + to_string(result[4]));
 					memcpy_device(nonce_found+kernel_id*nonce_len, data+data_range_start, nonce_len);
 					memcpy_device(result_found+kernel_id*5, result, 5*4);
 				}
@@ -340,16 +342,18 @@ int main(int argc, char *argv[]) {
 		cudaMemcpy(RESULT_THREAD_LEAST_TEMP, RESULT_THREAD_LEAST, NUM_BLOCKS*NUM_THREADS*5*4, cudaMemcpyDeviceToHost);
 
 		for (uint64_t i = 0; i < (uint64_t) NUM_BLOCKS*NUM_THREADS; ++i) {
-			if (RESULT_THREAD_LEAST_TEMP[5*i+1] < RESULT_LEAST[1]) {
-				memcpy(RESULT_LEAST, RESULT_THREAD_LEAST_TEMP+5*i, 5*4);
-				cudaMemcpy(DATA_LEAST+data_range_start, NONCE_THREAD_LEAST+NONCE_LEN*i, NONCE_LEN, cudaMemcpyDeviceToHost);
-				for (int j = 0; j < NONCE_LEN; ++j) {
-					buf_nonce[j] = DATA_LEAST[data_range_start+j];
+			if (RESULT_THREAD_LEAST_TEMP[5*i+0] < RESULT_LEAST[0]) {
+				if (RESULT_THREAD_LEAST_TEMP[5*i+1] < RESULT_LEAST[1]) {
+					memcpy(RESULT_LEAST, RESULT_THREAD_LEAST_TEMP+5*i, 5*4);
+					cudaMemcpy(DATA_LEAST+data_range_start, NONCE_THREAD_LEAST+NONCE_LEN*i, NONCE_LEN, cudaMemcpyDeviceToHost);
+					for (int j = 0; j < NONCE_LEN; ++j) {
+						buf_nonce[j] = DATA_LEAST[data_range_start+j];
+					}
+					buf_nonce[NONCE_LEN] = 0;
+					sprintf(buf, "Thread #%ld found the least value: %08x%08x%08x%08x%08x (nonce: %s)", i, RESULT_LEAST[0], RESULT_LEAST[1], RESULT_LEAST[2], RESULT_LEAST[3], RESULT_LEAST[4], buf_nonce);
+					log(buf);
+					output(DATA_LEAST, DATA_LEN);
 				}
-				buf_nonce[NONCE_LEN] = 0;
-				sprintf(buf, "Thread #%ld found the least value: %08x%08x%08x%08x%08x (nonce: %s)", i, RESULT_LEAST[0], RESULT_LEAST[1], RESULT_LEAST[2], RESULT_LEAST[3], RESULT_LEAST[4], buf_nonce);
-				log(buf);
-				output(DATA_LEAST, DATA_LEN);
 			}
 		}
 		end = chrono::high_resolution_clock::now();
