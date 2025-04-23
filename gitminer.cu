@@ -156,7 +156,6 @@ __device__ inline void memset_device(uint8_t *ptr, int value, size_t num) {
 __global__ void run_set(uint8_t *data_input, uint8_t *nonce, uint8_t *nonce_found, uint32_t *result_found, int data_len, int data_len_padded, int nonce_len, int epoch_count) {
 	int kernel_id = blockIdx.x * blockDim.x + threadIdx.x;
 	int nonce_size = data_range_end-data_range_start;
-	char buf[1000];
 
 	//variable to perform search
 	int range_search;
@@ -181,8 +180,6 @@ __global__ void run_set(uint8_t *data_input, uint8_t *nonce, uint8_t *nonce_foun
 			data[data_range_start] = j;
 			memcpy_device(result, result_cache, 5*4);
 			sha1_block(data+data_len-64, result);
-			sprintf(buf, "Printing result: %08x%08x%08x%08x%08x", result[0], result[1], result[2], result[3], result[4]);
-			log(buf);
 			memcpy_device(nonce_found+kernel_id*nonce_len, data+data_range_start, nonce_len);
 			memcpy_device(result_found+kernel_id*5, result, 5*4);
 		}
