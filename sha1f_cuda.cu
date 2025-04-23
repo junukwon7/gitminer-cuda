@@ -20,8 +20,8 @@ using namespace std;
 #define range_upper 'z' //inclusive
 
 //nonce range (sequence in base.txt)
-#define data_range_start 1800
-#define data_range_end 1820
+#define data_range_start 1810
+#define data_range_end 1830
 
 //variable part of nonce
 #define data_range_len_var 10
@@ -180,8 +180,11 @@ __global__ void run_set(uint8_t *data_input, uint8_t *nonce, uint8_t *nonce_foun
 			data[data_range_start] = j;
 			memcpy_device(result, result_cache, 5*4);
 			sha1_block(data+data_len-64, result);
-			memcpy_device(nonce_found+kernel_id*nonce_len, data+data_range_start, nonce_len);
-			memcpy_device(result_found+kernel_id*5, result, 5*4);
+
+			if (result[0] < result_found[kernel_id*5+0]) {
+				memcpy_device(nonce_found+kernel_id*nonce_len, data+data_range_start, nonce_len);
+				memcpy_device(result_found+kernel_id*5, result, 5*4);
+			}
 		}
 
 		//calculate the next nonce
@@ -240,7 +243,7 @@ int main(int argc, char *argv[]) {
 	char buf[1000], buf_nonce[1000];
 
 	int NUM_BLOCKS = 136, NUM_THREADS = 256;
-	int EPOCH_COUNT = 100;
+	int EPOCH_COUNT = 100000;
 
 	log("Reading data");
 
@@ -330,23 +333,22 @@ int main(int argc, char *argv[]) {
 	for(;;) {
 		run_set<<<NUM_BLOCKS, NUM_THREADS>>>(BASE, NONCE_THREAD, NONCE_THREAD_LEAST, RESULT_THREAD_LEAST, DATA_LEN, PADDED_LEN, NONCE_LEN, EPOCH_COUNT);
 
-		sprintf(buf, "Printing RESULT_THREAD_LEAST: %08x%08x%08x%08x%08x", RESULT_THREAD_LEAST_TEMP[0], RESULT_THREAD_LEAST_TEMP[1], RESULT_THREAD_LEAST_TEMP[2], RESULT_THREAD_LEAST_TEMP[3], RESULT_THREAD_LEAST_TEMP[4]);
 		processed += (uint64_t) NUM_BLOCKS * NUM_THREADS * EPOCH_COUNT * (range_upper - range_lower + 1);
 
 		cudaMemcpy(RESULT_THREAD_LEAST_TEMP, RESULT_THREAD_LEAST, NUM_BLOCKS*NUM_THREADS*5*4, cudaMemcpyDeviceToHost);
 
 		for (uint64_t i = 0; i < (uint64_t) NUM_BLOCKS*NUM_THREADS; ++i) {
-			memcpy(RESULT_LEAST, RESULT_THREAD_LEAST_TEMP+5*i, 5*4);
-			cudaMemcpy(DATA_LEAST+data_range_start, NONCE_THREAD_LEAST+NONCE_LEN*i, NONCE_LEN, cudaMemcpyDeviceToHost);
-			for (int j = 0; j < NONCE_LEN; ++j) {
-				buf_nonce[j] = DATA_LEAST[data_range_start+j];
+			if (!RESULT_THREAD_LEAST_TEMP[5*i+0] < RESULT_LEAST[0]) {
+				memcpy(RESULT_LEAST, RESULT_THREAD_LEAST_TEMP+5*i, 5*4);
+				cudaMemcpy(DATA_LEAST+data_range_start, NONCE_THREAD_LEAST+NONCE_LEN*i, NONCE_LEN, cudaMemcpyDeviceToHost);
+				for (int j = 0; j < NONCE_LEN; ++j) {
+					buf_nonce[j] = DATA_LEAST[data_range_start+j];
+				}
+				buf_nonce[NONCE_LEN] = 0;
+				sprintf(buf, "Thread #%ld found the least value: %08x%08x%08x%08x%08x (nonce: %s)", i, RESULT_LEAST[0], RESULT_LEAST[1], RESULT_LEAST[2], RESULT_LEAST[3], RESULT_LEAST[4], buf_nonce);
+				log(buf);
+				output(DATA_LEAST, DATA_LEN);
 			}
-			buf_nonce[NONCE_LEN] = 0;
-			sprintf(buf, "Printing RESULT_THREAD_LEAST: %08x%08x%08x%08x%08x", RESULT_THREAD_LEAST_TEMP[0], RESULT_THREAD_LEAST_TEMP[1], RESULT_THREAD_LEAST_TEMP[2], RESULT_THREAD_LEAST_TEMP[3], RESULT_THREAD_LEAST_TEMP[4]);
-			log(buf);
-			sprintf(buf, "Thread #%ld found the least value: %08x%08x%08x%08x%08x (nonce: %s)", i, RESULT_LEAST[0], RESULT_LEAST[1], RESULT_LEAST[2], RESULT_LEAST[3], RESULT_LEAST[4], buf_nonce);
-			log(buf);
-			output(DATA_LEAST, DATA_LEN);
 		}
 		end = chrono::high_resolution_clock::now();
 		elapsed_log = chrono::duration_cast<chrono::nanoseconds>(end - begin_log);
@@ -357,8 +359,6 @@ int main(int argc, char *argv[]) {
 			processed_last = processed;
 			log(buf);
 			begin_log = chrono::high_resolution_clock::now();
-			sprintf(buf, "Current lowest: %08x%08x%08x%08x%08x (nonce: %s)", RESULT_LEAST[0], RESULT_LEAST[1], RESULT_LEAST[2], RESULT_LEAST[3], RESULT_LEAST[4], buf_nonce);
-			log(buf);
 		}
 	}
 }
