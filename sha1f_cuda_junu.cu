@@ -20,13 +20,13 @@ using namespace std;
 #define range_upper 'z' // inclusive
 
 // nonce range (sequence in base.txt)
-#define data_range_start 1130
-#define data_range_end 1150
+#define data_range_start 1070
+#define data_range_end 1090
 
 // variable part of nonce
 #define data_range_len_var 10
 
-#define data_len_max 2000 // expected max length of input data
+#define data_len_max 1200 // expected max length of input data
 
 int logmode = 1;
 
