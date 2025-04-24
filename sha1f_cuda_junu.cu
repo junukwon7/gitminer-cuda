@@ -492,14 +492,12 @@ int main(int argc, char *argv[])
 			}
 			end = chrono::high_resolution_clock::now();
 			elapsed_log = chrono::duration_cast<chrono::nanoseconds>(end - begin_log);
-			if (1e9 * 10 < (double)elapsed_log.count())
+			if (1e9 * 50 < (double)elapsed_log.count())
 			{
 				elapsed = chrono::duration_cast<chrono::nanoseconds>(end - begin);
 				sprintf(buf, "Processed %ldG hashes (%.2fMH/s)\n", processed / 1000000000, (1e3 * (processed - processed_last) / (elapsed.count() - elapsed_last.count())));
 				elapsed_last = elapsed;
 				processed_last = processed;
-				log(buf);
-				sprintf(buf, "Current result: %08x%08x%08x%08x%08x\n", RESULT_LEAST[0], RESULT_LEAST[1], RESULT_LEAST[2], RESULT_LEAST[3], RESULT_LEAST[4]);
 				log(buf);
 				begin_log = chrono::high_resolution_clock::now();
 			}
